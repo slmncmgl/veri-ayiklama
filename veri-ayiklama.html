@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veri Ayıklama</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:           #f7f8fc;
+            --surface:      #ffffff;
+            --surface-2:    #f0f2f8;
+            --border:       #e2e5ef;
+            --border-hover: #bdc5e0;
+            --accent:       #2d59e8;
+            --accent-light: #eef1fd;
+            --accent-hover: #1e44cc;
+            --success:      #0e9f6e;
+            --success-light:#edfaf4;
+            --text-1:       #0f1629;
+            --text-2:       #4a5278;
+            --text-3:       #9299b8;
+            --sans:         'DM Sans', sans-serif;
+            --mono:         'DM Mono', monospace;
+            --radius:       10px;
+            --shadow-sm:    0 1px 3px rgba(15,22,41,0.06), 0 1px 2px rgba(15,22,41,0.04);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: var(--sans);
+            color: var(--text-1);
+            min-height: 100vh;
+            padding: 2.5rem 1.25rem 4rem;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #6b8ef5);
+            z-index: 100;
+        }
+
+        .container { max-width: 980px; margin: 0 auto; }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; }
+
+        .brand-icon {
+            width: 38px; height: 38px;
+            background: var(--accent);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(45,89,232,0.3);
+        }
+
+        .brand-title { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
+        .brand-sub { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+
+        .version-badge {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--accent);
+            background: var(--accent-light);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-weight: 500;
+            border: 1px solid rgba(45,89,232,0.15);
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        @media (max-width: 680px) {
+            .layout { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .card-head {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .card-head-label {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-3);
+        }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+        .dot.green { background: var(--success); }
+
+        /* Textarea */
+        textarea {
+            display: block; width: 100%; height: 360px;
+            padding: 18px; background: transparent;
+            border: none; outline: none; resize: none;
+            font-family: var(--mono); font-size: 12.5px;
+            color: var(--text-1); line-height: 1.75;
+        }
+        textarea::placeholder { color: var(--text-3); }
+
+        /* Button */
+        .btn-process {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: calc(100% - 36px); margin: 0 18px 18px;
+            padding: 13px 20px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: 8px;
+            font-family: var(--sans); font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+            box-shadow: 0 2px 8px rgba(45,89,232,0.25);
+        }
+        .btn-process:hover { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(45,89,232,0.35); transform: translateY(-1px); }
+        .btn-process:active { transform: translateY(0); }
+
+        /* Results */
+        .results-inner {
+            padding: 16px 18px 18px;
+            display: flex; flex-direction: column; gap: 9px;
+            min-height: 400px;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 10px; padding: 40px 0;
+            color: var(--text-3);
+            border: 1.5px dashed var(--border);
+            border-radius: 8px; background: var(--surface-2);
+        }
+        .empty-icon { font-size: 24px; opacity: 0.5; }
+        .empty-label { font-size: 12px; font-weight: 500; }
+
+        /* Field Row */
+        .field-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 11px 14px;
+            border: 1px solid var(--border); border-radius: 8px;
+            background: var(--surface);
+            transition: border-color 0.2s, opacity 0.3s;
+            animation: fadeUp 0.22s ease both;
+        }
+        .field-row:hover { border-color: var(--border-hover); }
+        .field-row.row-done { opacity: 0.38; background: var(--surface-2); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .field-row:nth-child(1) { animation-delay: 0.00s; }
+        .field-row:nth-child(2) { animation-delay: 0.04s; }
+        .field-row:nth-child(3) { animation-delay: 0.08s; }
+        .field-row:nth-child(4) { animation-delay: 0.12s; }
+        .field-row:nth-child(5) { animation-delay: 0.16s; }
+        .field-row:nth-child(6) { animation-delay: 0.20s; }
+
+        .field-body { flex: 1; min-width: 0; }
+
+        .field-label {
+            font-size: 9.5px; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--text-3); margin-bottom: 3px;
+        }
+
+        .field-value {
+            font-family: var(--mono); font-size: 13px; font-weight: 500;
+            color: var(--text-1);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .field-value.missing { color: var(--text-3); font-style: italic; font-size: 12px; font-weight: 400; }
+
+        /* Copy button */
+        .btn-copy {
+            flex-shrink: 0; padding: 7px 13px;
+            background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+            font-family: var(--sans); font-size: 11px; font-weight: 600;
+            color: var(--text-2); cursor: pointer;
+            transition: all 0.14s ease; white-space: nowrap;
+        }
+        .btn-copy:hover:not(:disabled) { background: var(--accent-light); border-color: rgba(45,89,232,0.3); color: var(--accent); }
+        .btn-copy.copied { background: var(--success-light); border-color: rgba(14,159,110,0.3); color: var(--success); }
+        .btn-copy:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* Note */
+        .foot-note {
+            margin-top: 4px; padding: 12px 14px;
+            background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+        }
+        .foot-note p { font-size: 11px; color: var(--text-3); line-height: 1.7; }
+        .foot-note strong { color: var(--text-2); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <div class="brand">
+            <div class="brand-icon">⚡</div>
+            <div>
+                <div class="brand-title">Veri Ayıklama</div>
+                <div class="brand-sub">Ham veri → Yapılandırılmış çıktı</div>
+            </div>
+        </div>
+        <span class="version-badge">v1.0</span>
+    </div>
+
+    <div class="layout">
+
+        <div class="card">
+            <div class="card-head">
+                <div class="dot"></div>
+                <span class="card-head-label">Ham Veri Girişi</span>
+            </div>
+            <textarea id="rawInput" placeholder="Buraya ham veriyi yapıştırın...&#10;&#10;Örn:&#10;Seda Soniz Berber (#43971960)&#10;seda@example.com&#10;05321234567&#10;Kadıköy Anadolu Lisesi&#10;11"></textarea>
+            <button class="btn-process" onclick="processData()">
+                <span>→</span> Verileri Çek
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div class="dot green"></div>
+                <span class="card-head-label">Ayıklanan Alanlar</span>
+            </div>
+            <div class="results-inner" id="resultsContainer">
+                <div class="empty-state">
+                    <div class="empty-icon">◎</div>
+                    <div class="empty-label">Henüz veri işlenmedi</div>
+                </div>
+                <div class="foot-note">
+                    <p><strong>Not:</strong> Telefonlar "90" ile başlar, "+" içermez.<br>
+                    <strong>Sınıf</strong> kopyalandığında sayfa sıfırlanır.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const FIELDS = [
+        { key: 'date',   label: 'Tarih'   },
+        { key: 'name',   label: 'İsim'    },
+        { key: 'email',  label: 'E-posta' },
+        { key: 'phone',  label: 'Telefon' },
+        { key: 'school', label: 'Okul'    },
+        { key: 'grade',  label: 'Sınıf'   }
+    ];
+
+    function processData() {
+        const input = document.getElementById('rawInput').value;
+        if (!input.trim()) return;
+        renderResults(extractData(input));
+    }
+
+    function extractData(input) {
+        const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
+        const r = {};
+
+        const dateFound = input.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{2},\s?\d{4}/i);
+        if (dateFound) {
+            r.date = dateFound[0];
+        } else {
+            const now = new Date();
+            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            r.date = `${months[now.getMonth()]} ${String(now.getDate()).padStart(2,'0')}, ${now.getFullYear()}`;
+        }
+
+        const nameMatch = input.match(/^([^\(\n#:]+)/);
+        r.name = nameMatch ? nameMatch[1].trim() : null;
+
+        const emailMatch = input.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        r.email = emailMatch ? emailMatch[0] : null;
+
+        const phoneMatch = input.match(/(?:\+?90|0)?\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}/) ||
+                           input.match(/5\d{9}/) ||
+                           input.match(/\d{10,12}/);
+        if (phoneMatch) {
+            let p = phoneMatch[0].replace(/\D/g,'');
+            if (p.startsWith('0')) p = '9' + p;
+            else if (p.startsWith('5') && p.length === 10) p = '90' + p;
+            r.phone = p;
+        } else { r.phone = null; }
+
+        const schoolLabel = input.match(/Çocuğun Eğitim Aldığı Okul\s*(.*)/i);
+        if (schoolLabel && schoolLabel[1] && schoolLabel[1].trim() !== '-') {
+            r.school = schoolLabel[1].replace('-','').trim();
+        } else {
+            r.school = lines.find(l => l.toLowerCase().includes('lisesi') || l.toLowerCase().includes('anadolu lisesi')) || null;
+        }
+
+        const gradeMatch = input.match(/Çocuk Kaçıncı Sınıfta\s*(\d+)/i) || input.match(/\n(\d{1,2})$/m);
+        r.grade = gradeMatch ? gradeMatch[1] : null;
+
+        return r;
+    }
+
+    function renderResults(data) {
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = '';
+
+        FIELDS.forEach((field, i) => {
+            const isLast = i === FIELDS.length - 1;
+            const value  = data[field.key];
+            const miss   = !value;
+
+            const row = document.createElement('div');
+            row.id = `row-${field.key}`;
+            row.className = 'field-row';
+            row.innerHTML = `
+                <div class="field-body">
+                    <div class="field-label">${field.label}</div>
+                    <div class="field-value ${miss ? 'missing' : ''}" id="val-${field.key}">${value || 'bilinmiyor'}</div>
+                </div>
+                <button class="btn-copy" id="btn-${field.key}"
+                    onclick="copyField('${field.key}',${isLast})"
+                    ${miss ? 'disabled' : ''}>Kopyala</button>
+            `;
+            container.appendChild(row);
+        });
+
+        const note = document.createElement('div');
+        note.className = 'foot-note';
+        note.innerHTML = `<p><strong>Not:</strong> Telefonlar "90" ile başlar, "+" içermez.<br><strong>Sınıf</strong> kopyalandığında sayfa sıfırlanır.</p>`;
+        container.appendChild(note);
+    }
+
+    function copyField(key, isLast) {
+        const text = document.getElementById(`val-${key}`).innerText;
+        const btn  = document.getElementById(`btn-${key}`);
+        const row  = document.getElementById(`row-${key}`);
+
+        navigator.clipboard.writeText(text).catch(() => {
+            const el = document.createElement('textarea');
+            el.value = text; document.body.appendChild(el);
+            el.select(); document.execCommand('copy');
+            document.body.removeChild(el);
+        });
+
+        btn.textContent = '✓ Tamam';
+        btn.classList.add('copied');
+        row.classList.add('row-done');
+
+        if (isLast) {
+            setTimeout(clearAll, 800);
+        } else {
+            setTimeout(() => { btn.textContent = 'Kopyala'; btn.classList.remove('copied'); }, 1500);
+        }
+    }
+
+    function clearAll() {
+        document.getElementById('rawInput').value = '';
+        document.getElementById('resultsContainer').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">✓</div>
+                <div class="empty-label">Temizlendi · Yeni veri yapıştırabilirsiniz</div>
+            </div>
+            <div class="foot-note">
+                <p><strong>Not:</strong> Telefonlar "90" ile başlar, "+" içermez.<br><strong>Sınıf</strong> kopyalandığında sayfa sıfırlanır.</p>
+            </div>
+        `;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>
