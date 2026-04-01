@@ -6,6 +6,7 @@
     <title>Veri Ayıklama</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
             --bg:           #f7f8fc;
@@ -18,6 +19,7 @@
             --accent-hover: #1e44cc;
             --success:      #0e9f6e;
             --success-light:#edfaf4;
+            --danger:       #e84040;
             --text-1:       #0f1629;
             --text-2:       #4a5278;
             --text-3:       #9299b8;
@@ -46,14 +48,14 @@
             z-index: 100;
         }
 
-        .container { max-width: 980px; margin: 0 auto; }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-        /* Header */
+        /* ── Header ── */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 2rem;
+            margin-bottom: 1.75rem;
         }
 
         .brand { display: flex; align-items: center; gap: 12px; }
@@ -63,12 +65,12 @@
             background: var(--accent);
             border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 16px; flex-shrink: 0;
+            color: white; font-size: 16px;
             box-shadow: 0 2px 8px rgba(45,89,232,0.3);
         }
 
         .brand-title { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
-        .brand-sub { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+        .brand-sub   { font-size: 12px; color: var(--text-3); margin-top: 1px; }
 
         .version-badge {
             font-family: var(--mono);
@@ -81,20 +83,60 @@
             border: 1px solid rgba(45,89,232,0.15);
         }
 
-        /* Layout */
-        .layout {
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 5px;
+            margin-bottom: 1.25rem;
+            width: fit-content;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 7px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-3);
+            transition: all 0.15s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(45,89,232,0.25);
+        }
+
+        .tab-btn:not(.active):hover { color: var(--text-1); background: var(--surface-2); }
+
+        /* ── Views ── */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* ══════════════════════════════
+           TEKLİ MOD
+        ══════════════════════════════ */
+        .layout-single {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1.25rem;
             align-items: start;
         }
 
-        @media (max-width: 680px) {
-            .layout { grid-template-columns: 1fr; }
+        @media (max-width: 700px) {
+            .layout-single { grid-template-columns: 1fr; }
             .header { flex-direction: column; align-items: flex-start; gap: 12px; }
         }
 
-        /* Card */
+        /* ── Card ── */
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -116,9 +158,9 @@
         }
 
         .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-        .dot.green { background: var(--success); }
+        .dot.green  { background: var(--success); }
+        .dot.orange { background: #f59e0b; }
 
-        /* Textarea */
         textarea {
             display: block; width: 100%; height: 360px;
             padding: 18px; background: transparent;
@@ -128,8 +170,7 @@
         }
         textarea::placeholder { color: var(--text-3); }
 
-        /* Button */
-        .btn-process {
+        .btn-primary {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             width: calc(100% - 36px); margin: 0 18px 18px;
             padding: 13px 20px;
@@ -140,10 +181,9 @@
             transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
             box-shadow: 0 2px 8px rgba(45,89,232,0.25);
         }
-        .btn-process:hover { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(45,89,232,0.35); transform: translateY(-1px); }
-        .btn-process:active { transform: translateY(0); }
+        .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(45,89,232,0.35); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
 
-        /* Results */
         .results-inner {
             padding: 16px 18px 18px;
             display: flex; flex-direction: column; gap: 9px;
@@ -159,10 +199,9 @@
             border: 1.5px dashed var(--border);
             border-radius: 8px; background: var(--surface-2);
         }
-        .empty-icon { font-size: 24px; opacity: 0.5; }
+        .empty-icon  { font-size: 24px; opacity: 0.5; }
         .empty-label { font-size: 12px; font-weight: 500; }
 
-        /* Field Row */
         .field-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
             padding: 11px 14px;
@@ -186,13 +225,11 @@
         .field-row:nth-child(6) { animation-delay: 0.20s; }
 
         .field-body { flex: 1; min-width: 0; }
-
         .field-label {
             font-size: 9.5px; font-weight: 600;
             letter-spacing: 0.1em; text-transform: uppercase;
             color: var(--text-3); margin-bottom: 3px;
         }
-
         .field-value {
             font-family: var(--mono); font-size: 13px; font-weight: 500;
             color: var(--text-1);
@@ -200,7 +237,6 @@
         }
         .field-value.missing { color: var(--text-3); font-style: italic; font-size: 12px; font-weight: 400; }
 
-        /* Copy button */
         .btn-copy {
             flex-shrink: 0; padding: 7px 13px;
             background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
@@ -212,18 +248,150 @@
         .btn-copy.copied { background: var(--success-light); border-color: rgba(14,159,110,0.3); color: var(--success); }
         .btn-copy:disabled { opacity: 0.35; cursor: not-allowed; }
 
-        /* Note */
         .foot-note {
             margin-top: 4px; padding: 12px 14px;
             background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
         }
         .foot-note p { font-size: 11px; color: var(--text-3); line-height: 1.7; }
         .foot-note strong { color: var(--text-2); }
+
+        /* ══════════════════════════════
+           TOPLU MOD
+        ══════════════════════════════ */
+        .bulk-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        /* Drop zone */
+        .drop-zone {
+            margin: 20px;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--surface-2);
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+        .drop-zone-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.6; }
+        .drop-zone-title { font-size: 14px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+        .drop-zone-sub   { font-size: 12px; color: var(--text-3); }
+        .drop-zone input[type="file"] { display: none; }
+
+        /* Bulk toolbar */
+        .bulk-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .bulk-stats {
+            font-size: 13px;
+            color: var(--text-2);
+        }
+        .bulk-stats strong { color: var(--text-1); }
+
+        .btn-download {
+            display: flex; align-items: center; gap: 7px;
+            padding: 9px 18px;
+            background: var(--success); color: #fff;
+            border: none; border-radius: 7px;
+            font-family: var(--sans); font-size: 12px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 6px rgba(14,159,110,0.25);
+        }
+        .btn-download:hover { background: #0b8a5f; transform: translateY(-1px); }
+        .btn-download:active { transform: translateY(0); }
+
+        .btn-reset {
+            padding: 9px 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            font-family: var(--sans); font-size: 12px; font-weight: 500;
+            color: var(--text-3); cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-reset:hover { border-color: var(--danger); color: var(--danger); background: #fff1f1; }
+
+        /* Bulk table */
+        .table-wrap {
+            overflow-x: auto;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        thead th {
+            position: sticky; top: 0;
+            background: var(--surface-2);
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            z-index: 1;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+            animation: fadeUp 0.2s ease both;
+        }
+        tbody tr:hover { background: var(--surface-2); }
+        tbody tr:last-child { border-bottom: none; }
+
+        tbody td {
+            padding: 10px 14px;
+            color: var(--text-1);
+            font-family: var(--mono);
+            font-size: 12px;
+            white-space: nowrap;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        td.missing-cell {
+            color: var(--text-3);
+            font-style: italic;
+            font-size: 11px;
+        }
+
+        .row-num {
+            color: var(--text-3);
+            font-size: 11px;
+            text-align: center;
+            width: 36px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
 
+    <!-- Header -->
     <div class="header">
         <div class="brand">
             <div class="brand-icon">⚡</div>
@@ -232,43 +400,117 @@
                 <div class="brand-sub">Ham veri → Yapılandırılmış çıktı</div>
             </div>
         </div>
-        <span class="version-badge">v1.0</span>
+        <span class="version-badge">v2.0</span>
     </div>
 
-    <div class="layout">
-
-        <div class="card">
-            <div class="card-head">
-                <div class="dot"></div>
-                <span class="card-head-label">Ham Veri Girişi</span>
-            </div>
-            <textarea id="rawInput" placeholder="Buraya ham veriyi yapıştırın...&#10;&#10;Örn:&#10;Seda Soniz Berber (#43971960)&#10;seda@example.com&#10;05321234567&#10;Kadıköy Anadolu Lisesi&#10;11"></textarea>
-            <button class="btn-process" onclick="processData()">
-                <span>→</span> Verileri Çek
-            </button>
-        </div>
-
-        <div class="card">
-            <div class="card-head">
-                <div class="dot green"></div>
-                <span class="card-head-label">Ayıklanan Alanlar</span>
-            </div>
-            <div class="results-inner" id="resultsContainer">
-                <div class="empty-state">
-                    <div class="empty-icon">◎</div>
-                    <div class="empty-label">Henüz veri işlenmedi</div>
-                </div>
-                <div class="foot-note">
-                    <p><strong>Not:</strong> Telefonlar "90" ile başlar, "+" içermez.<br>
-                    <strong>Sınıf</strong> kopyalandığında sayfa sıfırlanır.</p>
-                </div>
-            </div>
-        </div>
-
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('single')">✏️ Tekli Giriş</button>
+        <button class="tab-btn" onclick="switchTab('bulk')">📂 Toplu CSV</button>
     </div>
+
+    <!-- ══ TEKLİ MOD ══ -->
+    <div id="view-single" class="view active">
+        <div class="layout-single">
+
+            <div class="card">
+                <div class="card-head">
+                    <div class="dot"></div>
+                    <span class="card-head-label">Ham Veri Girişi</span>
+                </div>
+                <textarea id="rawInput" placeholder="Buraya ham veriyi yapıştırın...&#10;&#10;Örn:&#10;Seda Soniz Berber (#43971960)&#10;seda@example.com&#10;05321234567&#10;Kadıköy Anadolu Lisesi&#10;11"></textarea>
+                <button class="btn-primary" onclick="processData()">
+                    <span>→</span> Verileri Çek
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <div class="dot green"></div>
+                    <span class="card-head-label">Ayıklanan Alanlar</span>
+                </div>
+                <div class="results-inner" id="resultsContainer">
+                    <div class="empty-state">
+                        <div class="empty-icon">◎</div>
+                        <div class="empty-label">Henüz veri işlenmedi</div>
+                    </div>
+                    <div class="foot-note">
+                        <p><strong>Not:</strong> Telefonlar "90" ile başlar, "+" içermez.<br>
+                        <strong>Sınıf</strong> kopyalandığında sayfa sıfırlanır.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══ TOPLU MOD ══ -->
+    <div id="view-bulk" class="view">
+        <div class="bulk-card" id="bulkCard">
+
+            <!-- Drop zone (başlangıçta görünür) -->
+            <div class="drop-zone" id="dropZone"
+                onclick="document.getElementById('fileInput').click()"
+                ondragover="onDragOver(event)"
+                ondragleave="onDragLeave(event)"
+                ondrop="onDrop(event)">
+                <div class="drop-zone-icon">📁</div>
+                <div class="drop-zone-title">CSV dosyasını buraya sürükleyin</div>
+                <div class="drop-zone-sub">veya tıklayarak seçin · Kylas export formatı desteklenir</div>
+                <input type="file" id="fileInput" accept=".csv" onchange="handleFile(event)">
+            </div>
+
+            <!-- Tablo (dosya yüklendikten sonra görünür) -->
+            <div id="bulkResult" style="display:none;">
+                <div class="bulk-toolbar">
+                    <div class="bulk-stats">
+                        <strong id="rowCount">0</strong> kayıt işlendi
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-reset" onclick="resetBulk()">↺ Sıfırla</button>
+                        <button class="btn-download" onclick="downloadCSV()">
+                            ⬇ CSV İndir
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="row-num">#</th>
+                                <th>Tarih</th>
+                                <th>İsim</th>
+                                <th>E-posta</th>
+                                <th>Telefon</th>
+                                <th>Okul</th>
+                                <th>Sınıf</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulkTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
 <script>
+    /* ══════════════════════════════
+       TAB SWITCH
+    ══════════════════════════════ */
+    function switchTab(name) {
+        document.querySelectorAll('.tab-btn').forEach((b,i) => {
+            b.classList.toggle('active', (i === 0 && name === 'single') || (i === 1 && name === 'bulk'));
+        });
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + name).classList.add('active');
+    }
+
+    /* ══════════════════════════════
+       TEKLİ MOD
+    ══════════════════════════════ */
     const FIELDS = [
         { key: 'date',   label: 'Tarih'   },
         { key: 'name',   label: 'İsim'    },
@@ -281,10 +523,10 @@
     function processData() {
         const input = document.getElementById('rawInput').value;
         if (!input.trim()) return;
-        renderResults(extractData(input));
+        renderResults(extractSingle(input));
     }
 
-    function extractData(input) {
+    function extractSingle(input) {
         const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
         const r = {};
 
@@ -304,8 +546,7 @@
         r.email = emailMatch ? emailMatch[0] : null;
 
         const phoneMatch = input.match(/(?:\+?90|0)?\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}/) ||
-                           input.match(/5\d{9}/) ||
-                           input.match(/\d{10,12}/);
+                           input.match(/5\d{9}/) || input.match(/\d{10,12}/);
         if (phoneMatch) {
             let p = phoneMatch[0].replace(/\D/g,'');
             if (p.startsWith('0')) p = '9' + p;
@@ -373,13 +614,13 @@
         row.classList.add('row-done');
 
         if (isLast) {
-            setTimeout(clearAll, 800);
+            setTimeout(clearSingle, 800);
         } else {
             setTimeout(() => { btn.textContent = 'Kopyala'; btn.classList.remove('copied'); }, 1500);
         }
     }
 
-    function clearAll() {
+    function clearSingle() {
         document.getElementById('rawInput').value = '';
         document.getElementById('resultsContainer').innerHTML = `
             <div class="empty-state">
@@ -391,6 +632,144 @@
             </div>
         `;
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ══════════════════════════════
+       TOPLU MOD
+    ══════════════════════════════ */
+    let bulkData = [];
+
+    function cleanPhone(raw) {
+        if (!raw) return '';
+        // "MOBILE: +905..." → "905..."
+        let p = String(raw).replace(/MOBILE:\s*/i, '').replace(/\+/g, '').trim();
+        p = p.replace(/\D/g,'');
+        if (p.startsWith('0')) p = '9' + p;
+        else if (p.startsWith('5') && p.length === 10) p = '90' + p;
+        return p;
+    }
+
+    function cleanEmail(raw) {
+        if (!raw) return '';
+        // "OFFICE: someone@..." → "someone@..."
+        return String(raw).replace(/OFFICE:\s*/i, '').trim();
+    }
+
+    function cleanDate(raw) {
+        if (!raw) return '';
+        // "Mar 28,2026 at 4:14 pm" → "Mar 28, 2026"
+        const m = String(raw).match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}),?\s*(\d{4})/i);
+        return m ? `${m[1]} ${m[2].padStart(2,'0')}, ${m[3]}` : String(raw);
+    }
+
+    function extractBulkRow(row) {
+        return {
+            date:   cleanDate(row['Form Submission Date'] || row['İlk Form Tarihi']),
+            name:   (row['First Name'] || '').trim(),
+            email:  cleanEmail(row['E-Mail Address']),
+            phone:  cleanPhone(row['Phone Number']),
+            school: (row['Çocuğun Eğitim Aldığı Okul'] || '').replace(/-/g,'').trim(),
+            grade:  (row['Çocuk Kaçıncı Sınıfta'] || '').toString().trim()
+        };
+    }
+
+    function handleFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        parseCsvFile(file);
+    }
+
+    function parseCsvFile(file) {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                bulkData = results.data.map(extractBulkRow);
+                renderBulkTable(bulkData);
+            }
+        });
+    }
+
+    function renderBulkTable(rows) {
+        document.getElementById('dropZone').style.display = 'none';
+        document.getElementById('bulkResult').style.display = 'block';
+        document.getElementById('rowCount').textContent = rows.length;
+
+        const tbody = document.getElementById('bulkTableBody');
+        tbody.innerHTML = '';
+
+        rows.forEach((r, i) => {
+            const tr = document.createElement('tr');
+            tr.style.animationDelay = Math.min(i * 0.02, 0.4) + 's';
+
+            const cells = [
+                { v: r.date   },
+                { v: r.name   },
+                { v: r.email  },
+                { v: r.phone  },
+                { v: r.school },
+                { v: r.grade  }
+            ];
+
+            let html = `<td class="row-num">${i + 1}</td>`;
+            cells.forEach(c => {
+                const miss = !c.v;
+                html += `<td class="${miss ? 'missing-cell' : ''}" title="${c.v || ''}">${c.v || '—'}</td>`;
+            });
+
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function downloadCSV() {
+        if (!bulkData.length) return;
+
+        const headers = ['Tarih', 'İsim', 'E-posta', 'Telefon', 'Okul', 'Sınıf'];
+        const keys    = ['date', 'name', 'email', 'phone', 'school', 'grade'];
+
+        const rows = [
+            headers.join(','),
+            ...bulkData.map(r =>
+                keys.map(k => {
+                    const v = (r[k] || '').toString().replace(/"/g, '""');
+                    return `"${v}"`;
+                }).join(',')
+            )
+        ].join('\n');
+
+        // BOM for Excel Turkish character support
+        const bom  = '\uFEFF';
+        const blob = new Blob([bom + rows], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `ayiklanan_veriler_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function resetBulk() {
+        bulkData = [];
+        document.getElementById('fileInput').value = '';
+        document.getElementById('dropZone').style.display = 'block';
+        document.getElementById('bulkResult').style.display = 'none';
+        document.getElementById('bulkTableBody').innerHTML = '';
+    }
+
+    /* Drag & drop */
+    function onDragOver(e) {
+        e.preventDefault();
+        document.getElementById('dropZone').classList.add('dragover');
+    }
+    function onDragLeave(e) {
+        document.getElementById('dropZone').classList.remove('dragover');
+    }
+    function onDrop(e) {
+        e.preventDefault();
+        document.getElementById('dropZone').classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.csv')) parseCsvFile(file);
     }
 </script>
 </body>
